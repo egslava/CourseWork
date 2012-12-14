@@ -1,0 +1,32 @@
+extends layout
+
+block head
+	- css ("jquery.jgrowl");
+	- js ("jquery.jgrowl");
+	- js ("main");
+
+block body
+	h1 Записки v1.0
+	p Эта программа предназначена для ведения записок.
+	p Для того, чтобы начать пользоваться программой, Вам необходимо войти, либо зарегистрироваться:
+
+	form#userdata
+		input(type="text", placeholder="Введите сюда Ваш e-mail")
+		br
+		input(type="password", placeholder="Введите сюда Ваш пароль")
+		br
+		.row
+			.container
+				input#login(type="button", value="Войти")
+			.container
+				input#register(type="button", value="Зарегистрироваться")
+		br
+		- foreach (user; notes)
+			p=user["user"]
+			p=user["password"]
+			- foreach ( note; user["notes"] )
+				p=note["title"]
+				p=note["body"]
+
+
+
