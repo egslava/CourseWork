@@ -1,9 +1,20 @@
 extends layout
 
 block head
-	- css ("jquery.jgrowl");
-	- js ("jquery.jgrowl");
-	- js ("main");
+	- js ("sha256");
+
+	:javascript
+		$(function (){
+
+			// Setting handlers...
+			$("#login").click(function(){
+				auth($("#user").val(), sha256_digest($("#password").val()));
+			});
+
+			$("#register").click(function(){
+				register($("#user").val(), sha256_digest($("#password").val()));
+			});
+		})
 
 block body
 	h1 Записки v1.0
@@ -11,22 +22,15 @@ block body
 	p Для того, чтобы начать пользоваться программой, Вам необходимо войти, либо зарегистрироваться:
 
 	form#userdata
-		input(type="text", placeholder="Введите сюда Ваш e-mail")
+		input#user(type="text", placeholder="Введите сюда Ваш e-mail")
 		br
-		input(type="password", placeholder="Введите сюда Ваш пароль")
+		input#password(type="password", placeholder="Введите сюда Ваш пароль")
 		br
 		.row
 			.container
 				input#login(type="button", value="Войти")
 			.container
 				input#register(type="button", value="Зарегистрироваться")
-		br
-		- foreach (user; notes)
-			p=user["user"]
-			p=user["password"]
-			- foreach ( note; user["notes"] )
-				p=note["title"]
-				p=note["body"]
 
 
 

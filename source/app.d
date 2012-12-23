@@ -25,32 +25,118 @@ bool userExists(string userName){
 	return userNotes.count(["user": userName]) != 0;
 }
 
-bool auth(string userName, string passwordHash){
-	return userNotes.count(["user": userName, "password": passwordHash]) > 0;
+bool auth(string userName, string password){
+	return userNotes.count(["user": userName, "password": hex256(password)]) > 0;
 }
 
-bool userRegister(string userName, string password){
-	string hashedPassword = hex256(password);
-	userNotes.insert( {user: userName, password: hex256(hashedPassword)});
+bool auth(HttpServerRequest req){
+	if (! ("user" in req.cookies))
+		return false;
+	if (! ("password" in req.cookies))
+		return false;
+	return auth(req.cookies["user"], req.cookies["password"]);
+}
+
+auto register_description=[
+	"0 user has been successfully registred",
+	"1 user with this username is already exists"
+	];
+int register(string userName, string password){
+	if (auth (userName, password))
+		return 1;
+	userNotes.insert( ["user": userName, "password": hex256(password)]);
+
+	return 0;
+}
+
+// get("/auth")
+void web_auth(HttpServerRequest req, HttpServerResponse res){
+	string u = req.form["user"];
+	string p = req.form["password"];
+
+	writeln("user: ", u, "password", p);
+	if(userExists(u)){
+		if (!auth(u, p)){
+			res.writeBody("1 Invalid password", "text/plain");
+			return;
+		}
+		res.setCookie("user", u);
+		res.setCookie("password", p);
+		res.writeBody("0 OK", "text/plain");
+		writeln("We are not here");
+		return;
+	}
+
+	res.writeBody("2 User is not exist");
+}
+
+// get("/register")
+void web_register(HttpServerRequest req, HttpServerResponse res){
+	string user = req.form["user"];
+	string password = req.form["password"];
+	int regCode = register(user, password);
+	res.writeBody(
+		register_description[regCode],
+		"text/plain"
+	);
+
+	if(!regCode){
+		res.setCookie("user", user);
+		res.setCookie("password", password);
+	}
+}
+
+void web_user(HttpServerRequest req, HttpServerResponse res){
+	if (!auth(req)){
+		res.redirect("/");
+		return;
+	}
+	auto username = req.params["user"];
+	auto notes = userNotes.findOne(["user": username]);
+	res.render!("user.dt", notes);
 }
 
 // get("/")
-void index(HttpServerRequest req, HttpServerResponse res){
-	auto pageTitle = "Жесть, это просто магия шаблонов! :)";
+void web_index(HttpServerRequest req, HttpServerResponse res){
+	if (auth(req)){
+		res.redirect("/user/"~req.cookies["user"]);
+		return;
+	}
 
-	auto notes = userNotes.find();
-	res.render!("index.dt", pageTitle, notes);
+	auto pageTitle = "Жесть, это просто магия шаблонов! :)";
+	
+	auto notes = userNotes.find(["user": "egslava"]);
+
+	if ("user" in req.cookies)
+		pageTitle = req.cookies["user"];
+	res.render!("index.dt");
+}
+
+void web_add(HttpServerRequest req, HttpServerResponse res){
+	if (!auth(req)){
+		res.redirect("/");
+		return;
+	}
+	userNotes.update( ["user": req.cookies["user"]], [
+			"$push": [
+				"notes": ["title": req.form["title"]]
+			]
+	]);
+	res.writeBody("0 OK");
 }
 
 static this()
 { 
-	writeln(hashToHex("Blah"));
 	db = connectMongoDB("127.0.0.1");
 	userNotes = db["test.usernotes"];
 	system ("compass compile ./public/styles/compass");
 	
 	auto router = new UrlRouter;
-	router.get("/", &index)
+	router.get("/", &web_index)
+			.post("/auth", &web_auth)
+			.post("/register", &web_register)
+			.get("/user/:user", &web_user)
+			.post("/add", &web_add)
 			.get("*", serveStaticFiles("./public/"));
 
 	auto settings = new HttpServerSettings;
