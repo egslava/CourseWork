@@ -93,7 +93,8 @@ void web_user(HttpServerRequest req, HttpServerResponse res){
 	}
 	auto username = req.params["user"];
 	auto notes = userNotes.findOne(["user": username]);
-	res.render!("user.dt", notes);
+	//notes["calculatedHash"] = hex256(notes["title"])
+	res.render!("user.dt", notes, hex256);
 }
 
 // get("/")
@@ -109,7 +110,9 @@ void web_index(HttpServerRequest req, HttpServerResponse res){
 
 	if ("user" in req.cookies)
 		pageTitle = req.cookies["user"];
-	res.render!("index.dt");
+	int fieldWidth = 5;
+	int fieldHeight = 5;
+	res.render!("index.dt", fieldWidth, fieldHeight);
 }
 
 void web_add(HttpServerRequest req, HttpServerResponse res){
@@ -119,7 +122,8 @@ void web_add(HttpServerRequest req, HttpServerResponse res){
 	}
 	userNotes.update( ["user": req.cookies["user"]], [
 			"$push": [
-				"notes": ["title": req.form["title"]]
+				"notes": ["title": req.form["title"],
+						  "hash": hex256( req.form["title"] )]
 			]
 	]);
 	res.writeBody("0 OK");

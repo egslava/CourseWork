@@ -218,3 +218,18 @@ body {
   -o-transition: margin-top 0.02s ease-in, border 0.02s ease-out, box-shadow 0.02s ease-in, box-shadow 0.3s ease-in, color 0.5s ease-out;
   transition: margin-top 0.02s ease-in, border 0.02s ease-out, box-shadow 0.02s ease-in, box-shadow 0.3s ease-in, color 0.5s ease-out;
 }
+
+/* line 127, compass/sass/screen.scss */
+.ok, .bad {
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+  border-radius: 5px;
+  border: 2px solid green;
+}
+
+/* line 133, compass/sass/screen.scss */
+.bad {
+  border-color: red;
+}

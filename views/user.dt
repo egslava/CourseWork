@@ -1,5 +1,4 @@
 extends layout
-
 block head
 	:javascript
 		$( function() {
@@ -18,5 +17,8 @@ block body
 	br
 	
 	- foreach ( note; notes["notes"] )
-		p=note["title"]
+		- if ( hex256(cast(string)(note["title"])) != cast(string)(note["hash"]) )
+			p.bad=note["title"]
+		- else
+			p.ok=note["title"]
 		br

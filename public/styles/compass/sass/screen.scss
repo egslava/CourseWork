@@ -123,3 +123,14 @@ body{
 
 
 }
+
+.ok {
+	@include border-radius(5px);
+	border: 2px solid green;
+	//display: inline-block;
+}
+
+.bad {
+	@extend .ok;
+	border-color: red;
+}
